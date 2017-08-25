@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="
+     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+     http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+     http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+     http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+     http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+
+	<bean
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>/WEB-INF/classes/database.properties</value>
+				<value>/WEB-INF/classes/application.properties</value>
+				<value>/WEB-INF/classes/task.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${jdbc.driverClassName}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+	</bean>
+
+	<bean id="flyway" class="org.flywaydb.core.Flyway" init-method="migrate">
+		<property name="dataSource" ref="dataSource" />
+		<property name="locations" value="db/migration" />
+		<property name="validateOnMigrate" value="false" />
+	</bean>
+
+	<context:component-scan base-package="pl.com.ak" />
+
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<bean id="sql1" class="pl.com.ak.service.dto.ParamSqlCommandDTO">
+		<constructor-arg index="0" type="java.lang.String"
+			value="${sql1.command}" />
+		<constructor-arg index="1" type="java.lang.String"
+			value="${sql1.file}" />
+	</bean>
+
+	<bean id="sql2" class="pl.com.ak.service.dto.ParamSqlCommandDTO">
+		<constructor-arg index="0" type="java.lang.String"
+			value="${sql2.command}" />
+		<constructor-arg index="1" type="java.lang.String"
+			value="${sql2.file}" />
+	</bean>
+
+	<bean id="sql3" class="pl.com.ak.service.dto.ParamSqlCommandDTO">
+		<constructor-arg index="0" type="java.lang.String"
+			value="${sql3.command}" />
+		<constructor-arg index="1" type="java.lang.String"
+			value="${sql3.file}" />
+	</bean>
+
+	<bean id="sql4" class="pl.com.ak.service.dto.ParamSqlCommandDTO">
+		<constructor-arg index="0" type="java.lang.String"
+			value="${sql4.command}" />
+		<constructor-arg index="1" type="java.lang.String"
+			value="${sql4.file}" />
+	</bean>
+
+	<bean id="paramSqlService" class="pl.com.ak.service.dto.ParamSqlServiceDTO">
+		<property name="destDir" value="${destination.dir}" />
+		<property name="paramSqlCommDTOs">
+			<list value-type="pl.com.ak.service.dto.ParamSqlCommandDTO">
+				<ref bean="sql1" />
+				<ref bean="sql2" />
+				<ref bean="sql3" />
+				<ref bean="sql4" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="runScheduler" class="pl.com.ak.schedule.TaskExecutor">
+		<property name="parameterDTOs" ref="paramSqlService" />
+	</bean>
+
+	<task:scheduled-tasks>
+		<task:scheduled ref="runScheduler" method="run"
+			cron="${run.task1}" />
+		<task:scheduled ref="runScheduler" method="run"
+			cron="${run.task2}" />
+	</task:scheduled-tasks>
+
+</beans>

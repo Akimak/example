@@ -1,2 +1,2 @@
 # example
-Simple scheduler sql in pure spring and jdbc
+Simple scheduler sql in spring and jdbc
